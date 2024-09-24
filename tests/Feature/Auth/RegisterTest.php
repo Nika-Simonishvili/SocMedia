@@ -2,7 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\ChannelsEnum;
+use App\Enums\RolesEnum;
 use App\Models\User;
+use App\Models\UserSettings;
 use Event;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -28,7 +31,7 @@ class RegisterTest extends TestCase
     public static function invalid_data(): array
     {
         return [
-            'invalid_email' => [
+            'invalid-email' => [
                 'data' => [
                     'first_name' => fake()->firstName(),
                     'last_name' => fake()->lastName(),
@@ -37,7 +40,7 @@ class RegisterTest extends TestCase
                     'password' => fake()->password(),
                 ],
             ],
-            'already_existing_email' => [
+            'already-existing-email' => [
                 'data' => [
                     'first_name' => fake()->firstName(),
                     'last_name' => fake()->lastName(),
@@ -46,7 +49,7 @@ class RegisterTest extends TestCase
                     'password' => fake()->password(),
                 ],
             ],
-            'already_existing_username' => [
+            'already-existing-username' => [
                 'data' => [
                     'first_name' => fake()->firstName(),
                     'last_name' => fake()->lastName(),
@@ -77,6 +80,18 @@ class RegisterTest extends TestCase
 
         $response->assertOk();
         $this->assertDatabaseHas((new User)->getTable(), Arr::except($data, ['password', 'password_confirmation']));
+
+        /** @var User $user */
+        $user = User::find(self::getDecodedContent($response)['data']['user']['id']);
+
+        $this->assertTrue($user->hasRole(RolesEnum::USER));
+        $this->assertDatabaseHas((new UserSettings)->getTable(),
+            [
+                'user_id' => $user->id,
+                'notification_channels' => $this->castAsJson([ChannelsEnum::DATABASE->value]),
+            ],
+        );
+
         Event::assertDispatched(Registered::class);
     }
 

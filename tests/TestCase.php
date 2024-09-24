@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Models\User;
 use Database\Seeders\AclSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -16,6 +17,15 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->seed(AclSeeder::class);
+    }
+
+    public function login(): User
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        return $user;
     }
 
     public static function getDecodedContent(TestResponse $response): array

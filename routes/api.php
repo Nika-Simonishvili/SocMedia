@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\User\UserSettingsController;
 use Illuminate\Support\Facades\Route;
 
 // Auth
@@ -17,4 +18,8 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {});
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::prefix('user')->group(function () {
+        Route::put('settings', [UserSettingsController::class, 'updateChannels']);
+    });
+});
